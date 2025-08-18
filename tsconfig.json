@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "outDir": "./dist",
-    "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,  // Esto ayuda a evitar errores con tipos de bibliotecas
+    "declaration": true  // Genera archivos .d.ts para ayudarte con la importación
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
