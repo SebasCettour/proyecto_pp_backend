@@ -1,17 +1,16 @@
-FROM node:20
-
+# Etapa de build
+FROM node:20-alpine AS build
 WORKDIR /app
-
-COPY package*.json .
-COPY tsconfig.json .
-
+COPY package*.json ./
 RUN npm install
-RUN npm install typescript ts-node --save-dev
-
 COPY . .
+RUN npm run build
 
-RUN tsc
-
-EXPOSE 4000
-
-CMD ["npm", "run", "dev"]
+# Etapa de producción
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=build /app/dist ./dist
+COPY package*.json ./
+RUN npm install --production
+COPY .env ./
+CMD ["node", "dist/server.js"]

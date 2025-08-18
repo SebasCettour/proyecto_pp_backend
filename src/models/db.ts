@@ -6,13 +6,13 @@ dotenv.config();
 const connectDb = async () => {
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT) || 3306,
+    port: Number(process.env.DB_PORT),
     user: process.env.DB_USER,
-    password: process.env.DB_PASS,
+    password: process.env.DB_PASS, // 👈 ojo: coincide con tu .env
     database: process.env.DB_NAME,
   });
 
-  console.log("✅ Conectado a la base de datos");
+  console.log("✅ Conectado a MySQL");
   return connection;
 };
 
