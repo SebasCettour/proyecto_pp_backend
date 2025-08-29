@@ -1,6 +1,7 @@
 import express from "express";
-import connectDb from "./models/db.js";
-import authRoutes from "./routes/auth.js";
+import connectDb from "./models/db";
+import authRoutes from "./routes/auth";
+import adminRoutes from "./routes/admin";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -9,6 +10,7 @@ app.use(express.json());
 
 // Rutas de autenticación
 app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
 
 app.get("/", async (_req, res) => {
   try {
