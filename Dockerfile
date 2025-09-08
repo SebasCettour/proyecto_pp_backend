@@ -1,16 +1,20 @@
-# Build
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-# Producción
+# Base
 FROM node:20-alpine
+
+# Directorio de trabajo
 WORKDIR /app
-COPY --from=build /app/dist ./dist
+
+# Copiar package.json y package-lock.json
 COPY package*.json ./
-RUN npm install --production
-COPY .env ./
-CMD ["node", "dist/server.js"]
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar todo el código
+COPY . .
+
+# Exponer el puerto del backend
+EXPOSE 4000
+
+# Comando de inicio en modo desarrollo
+CMD ["npm", "run", "dev"]
