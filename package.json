@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch src --exec ts-node src/server.ts",
+    "dev": "tsc --watch & nodemon --watch dist dist/server.js",
     "build": "tsc",
     "start": "node dist/server.js"
   },

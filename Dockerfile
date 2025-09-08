@@ -1,20 +1,15 @@
-# Base
 FROM node:20-alpine
-
-# Directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Instala dependencias (prod + dev)
 COPY package*.json ./
-
-# Instalar dependencias
 RUN npm install
 
-# Copiar todo el código
+# Copia el código fuente
 COPY . .
 
-# Exponer el puerto del backend
+# Exponer puerto
 EXPOSE 4000
 
-# Comando de inicio en modo desarrollo
-CMD ["npm", "run", "dev"]
+# Comando de desarrollo
+CMD ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node src/server.ts"]
