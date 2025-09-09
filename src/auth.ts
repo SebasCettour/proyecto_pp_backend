@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-
+// @ts-ignore
+import bcrypt from "bcrypt";
 const SECRET_KEY = process.env.JWT_SECRET || "supersecret123";
 
 // Hashear contraseña

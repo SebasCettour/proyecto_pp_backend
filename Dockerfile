@@ -1,15 +1,25 @@
-FROM node:20-alpine
+# Etapa de desarrollo
+FROM node:20 AS dev
+
 WORKDIR /app
 
-# Instala dependencias (prod + dev)
 COPY package*.json ./
 RUN npm install
 
-# Copia el código fuente
 COPY . .
 
-# Exponer puerto
-EXPOSE 4000
+CMD ["npm", "run", "dev"]
 
-# Comando de desarrollo
-CMD ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node src/server.ts"]
+# Etapa de producción
+FROM node:20 AS prod
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --omit=dev
+
+COPY . .
+
+RUN npm run build
+
+CMD ["npm", "start"]
