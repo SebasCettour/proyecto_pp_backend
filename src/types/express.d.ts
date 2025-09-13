@@ -1,7 +1,8 @@
-import { JwtPayload } from "../middleware/authMiddleware";
-
 declare module "express-serve-static-core" {
   interface Request {
-    user?: JwtPayload;
+    user?: {
+      username: string;
+      role: string;
+    };
   }
 }

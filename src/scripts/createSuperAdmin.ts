@@ -4,6 +4,7 @@ import { hashPassword } from "../auth.js";
 const createSuperadmin = async () => {
   const username = "superadmin";
   const password = "supersecret123";
+  const email = "superadmin@admin.com";
   const hashedPassword = hashPassword(password);
   const roleId = 1;
 
@@ -18,8 +19,8 @@ const createSuperadmin = async () => {
       console.log("Superadmin ya existe");
     } else {
       await pool.query(
-        "INSERT INTO User (Nombre_Usuario, Contrasenia, Id_Rol) VALUES (?, ?, ?)",
-        [username, hashedPassword, roleId]
+        "INSERT INTO User (Nombre_Usuario, Correo_Electronico, Contrasenia, Id_Rol) VALUES (?, ?, ?, ?)",
+        [username, email, hashedPassword, roleId]
       );
       console.log("✅ Superadmin creado con éxito");
     }

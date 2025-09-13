@@ -1,4 +1,5 @@
-import express from "express";
+import express, { Request, Response } from "express";
+import cors from "cors";
 import { pool } from "./models/db.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
@@ -6,13 +7,23 @@ import adminRoutes from "./routes/admin.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Configurar CORS para permitir solicitudes desde el frontend
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Origen del frontend
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Métodos permitidos
+    allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+  })
+);
+
 app.use(express.json());
 
-// Rutas de autenticación
+// Rutas de autenticación y administración
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 
-app.get("/", async (_req, res) => {
+// Ruta raíz para probar la conexión a la base de datos
+app.get("/", async (_req: any, res: any) => {
   try {
     const [rows] = await pool.query("SELECT 'Hola desde MySQL!' as msg");
     res.json(rows);
@@ -22,7 +33,7 @@ app.get("/", async (_req, res) => {
   }
 });
 
-// Verificar la conexión a la base de datos al iniciar
+// Verificar la conexión a la base de datos antes de iniciar el servidor
 pool
   .getConnection()
   .then((connection) => {
