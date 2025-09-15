@@ -3,6 +3,7 @@ import cors from "cors";
 import { pool } from "./models/db.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
+import cie10Routes from "./routes/cie10.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -21,6 +22,7 @@ app.use(express.json());
 // Rutas de autenticación y administración
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api/cie10", cie10Routes);
 
 // Ruta raíz para probar la conexión a la base de datos
 app.get("/", async (_req: any, res: any) => {
