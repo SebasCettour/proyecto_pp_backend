@@ -46,10 +46,44 @@ router.post(
       // Generar token JWT con username y rol
       const token = generateToken({
         username: user.Nombre_Usuario,
-        role: user.Nombre_Rol,
+        role: user.Nombre_Rol.toLocaleLowerCase(),
       });
 
-      return res.json({ token, role: user.Nombre_Rol });
+      return res.json({ token, role: user.Nombre_Rol.toLocaleLowerCase() });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Error del servidor" });
+    }
+  }
+);
+
+router.post(
+  "/register",
+  async (req: Request, res: Response) => {
+    const { username, password, email, roleId } = req.body;
+
+    if (!username || !password || !roleId) {
+      return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    try {
+      // Verifica si el usuario ya existe
+      const [existing] = await pool.query(
+        "SELECT * FROM User WHERE Nombre_Usuario = ?",
+        [username]
+      );
+      if ((existing as any).length > 0) {
+        return res.status(409).json({ error: "El usuario ya existe" });
+      }
+
+      const hashedPassword = hashPassword(password);
+
+      await pool.query(
+        "INSERT INTO User (Nombre_Usuario, Contrasenia, Correo_Electronico, Id_Rol) VALUES (?, ?, ?, ?)",
+        [username, hashedPassword, email || null, roleId]
+      );
+
+      return res.status(201).json({ message: "Usuario creado con éxito" });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Error del servidor" });
