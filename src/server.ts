@@ -3,7 +3,7 @@ import cors from "cors";
 import { pool } from "./models/db.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
-import cie10Routes from "./routes/cie11.js";
+import cie10Routes from "./routes/cie10.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -39,13 +39,13 @@ app.get("/", async (_req: any, res: any) => {
 pool
   .getConnection()
   .then((connection) => {
-    console.log("✅ Conexión a la base de datos establecida");
+    console.log("Conexión a la base de datos establecida");
     connection.release(); // Liberar la conexión al pool
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Servidor corriendo en puerto ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("❌ Error al conectar a la base de datos:", err);
-    process.exit(1); // Terminar el proceso si no se puede conectar
+    console.error("Error al conectar a la base de datos:", err);
+    process.exit(1);
   });
