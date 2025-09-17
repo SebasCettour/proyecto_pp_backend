@@ -4,6 +4,7 @@ import { pool } from "./models/db.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import cie10Routes from "./routes/cie10.js";
+import novedadRouter from "./routes/novedad.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -11,9 +12,9 @@ const PORT = Number(process.env.PORT) || 4000;
 // Configurar CORS para permitir solicitudes desde el frontend
 app.use(
   cors({
-    origin: "http://localhost:3000", // Origen del frontend
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Métodos permitidos
-    allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/cie10", cie10Routes);
+app.use("/api/novedad", novedadRouter);
 
 // Ruta raíz para probar la conexión a la base de datos
 app.get("/", async (_req: any, res: any) => {
