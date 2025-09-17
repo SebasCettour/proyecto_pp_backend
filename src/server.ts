@@ -3,10 +3,10 @@ import cors from "cors";
 import { pool } from "./models/db.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
-import cie10Routes from "./routes/cie10.js";
+import cie10Routes from "./routes/cie11.js";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 // Configurar CORS para permitir solicitudes desde el frontend
 app.use(
@@ -41,7 +41,7 @@ pool
   .then((connection) => {
     console.log("✅ Conexión a la base de datos establecida");
     connection.release(); // Liberar la conexión al pool
-    app.listen(PORT, () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`Servidor corriendo en puerto ${PORT}`);
     });
   })

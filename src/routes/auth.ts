@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { hashPassword, verifyPassword, generateToken } from "../auth.js";
+import { verifyPassword, generateToken } from "../auth.js";
 import { pool } from "../models/db.js";
 import { RowDataPacket } from "mysql2";
 import bcrypt from "bcrypt";
@@ -20,6 +20,7 @@ interface DBUser extends RowDataPacket {
 
 const router = Router();
 
+// LOGIN
 router.post(
   "/login",
   async (req: Request<{}, any, LoginBody>, res: Response) => {
@@ -32,7 +33,7 @@ router.post(
     try {
       // Buscar usuario y rol en la base de datos
       const [rows] = await pool.query<DBUser[]>(
-        "SELECT u.*, r.Nombre_Rol FROM User u JOIN Rol r ON u.Id_Rol = r.Id_Rol WHERE Nombre_Usuario = ?",
+        "SELECT u.*, r.Nombre_Rol FROM Usuarios u JOIN Rol r ON u.Id_Rol = r.Id_Rol WHERE u.Nombre_Usuario = ?",
         [username]
       );
 
@@ -58,6 +59,7 @@ router.post(
   }
 );
 
+// REGISTER
 router.post(
   "/register",
   async (req: Request, res: Response) => {
@@ -70,17 +72,17 @@ router.post(
     try {
       // Verifica si el usuario ya existe
       const [existing] = await pool.query(
-        "SELECT * FROM User WHERE Nombre_Usuario = ?",
+        "SELECT * FROM Usuarios WHERE Nombre_Usuario = ?",
         [username]
       );
       if ((existing as any).length > 0) {
         return res.status(409).json({ error: "El usuario ya existe" });
       }
 
-      const hashedPassword = hashPassword(password);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       await pool.query(
-        "INSERT INTO User (Nombre_Usuario, Contrasenia, Correo_Electronico, Id_Rol) VALUES (?, ?, ?, ?)",
+        "INSERT INTO Usuarios (Nombre_Usuario, Contrasenia, Correo_Electronico, Id_Rol) VALUES (?, ?, ?, ?)",
         [username, hashedPassword, email || null, roleId]
       );
 
@@ -91,23 +93,5 @@ router.post(
     }
   }
 );
-
-// Endpoint para registrar usuarios
-router.post("/register", async (req: Request, res: Response) => {
-  const { Nombre_Usuario, Correo_Electronico, Contrasenia, Id_Rol } = req.body;
-  if (!Nombre_Usuario || !Correo_Electronico || !Contrasenia || !Id_Rol) {
-    return res.status(400).json({ error: "Faltan datos" });
-  }
-  try {
-    const hash = await bcrypt.hash(Contrasenia, 10);
-    await pool.query(
-      "INSERT INTO User (Nombre_Usuario, Correo_Electronico, Contrasenia, Id_Rol) VALUES (?, ?, ?, ?)",
-      [Nombre_Usuario, Correo_Electronico, hash, Id_Rol]
-    );
-    res.status(201).json({ message: "Usuario creado" });
-  } catch (err) {
-    res.status(500).json({ error: "Error al crear usuario" });
-  }
-});
 
 export default router;
