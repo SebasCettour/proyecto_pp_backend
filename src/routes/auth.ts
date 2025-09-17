@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { hashPassword, verifyPassword, generateToken } from "../auth.js";
 import { pool } from "../models/db.js";
 import { RowDataPacket } from "mysql2";
+import bcrypt from "bcrypt";
 
 interface LoginBody {
   username: string;
@@ -90,5 +91,23 @@ router.post(
     }
   }
 );
+
+// Endpoint para registrar usuarios
+router.post("/register", async (req: Request, res: Response) => {
+  const { Nombre_Usuario, Correo_Electronico, Contrasenia, Id_Rol } = req.body;
+  if (!Nombre_Usuario || !Correo_Electronico || !Contrasenia || !Id_Rol) {
+    return res.status(400).json({ error: "Faltan datos" });
+  }
+  try {
+    const hash = await bcrypt.hash(Contrasenia, 10);
+    await pool.query(
+      "INSERT INTO User (Nombre_Usuario, Correo_Electronico, Contrasenia, Id_Rol) VALUES (?, ?, ?, ?)",
+      [Nombre_Usuario, Correo_Electronico, hash, Id_Rol]
+    );
+    res.status(201).json({ message: "Usuario creado" });
+  } catch (err) {
+    res.status(500).json({ error: "Error al crear usuario" });
+  }
+});
 
 export default router;
