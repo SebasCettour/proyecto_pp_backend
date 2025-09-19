@@ -86,6 +86,27 @@ router.post(
         [username, hashedPassword, email || null, roleId]
       );
 
+      await pool.query(
+        `INSERT INTO empleados (
+          Apellido_Nombre, Area, Cargo, Correo_Electronico, Domicilio, Estado_Civil,
+          Fecha_Desde, Fecha_Nacimiento, Legajo, Telefono, Tipo_Documento, Numero_Documento
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          username,
+          req.body.area,
+          req.body.cargo,
+          email,
+          req.body.domicilio,
+          req.body.estadoCivil,
+          req.body.fechaContrato,
+          req.body.fechaNacimiento,
+          req.body.legajo,
+          req.body.telefono,
+          req.body.tipoDocumento,
+          req.body.numeroDocumento
+        ]
+      );
+
       return res.status(201).json({ message: "Usuario creado con éxito" });
     } catch (err) {
       console.error(err);
