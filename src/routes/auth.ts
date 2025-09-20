@@ -87,7 +87,7 @@ router.post(
       );
 
       await pool.query(
-        `INSERT INTO empleados (
+        `INSERT INTO Empleado (
           Apellido_Nombre, Area, Cargo, Correo_Electronico, Domicilio, Estado_Civil,
           Fecha_Desde, Fecha_Nacimiento, Legajo, Telefono, Tipo_Documento, Numero_Documento
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
