@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import cie10Routes from "./routes/cie10.js";
 import novedadRouter from "./routes/novedad.js";
+import usuarioRouter from "./routes/usuario.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -25,6 +26,7 @@ app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/api/cie10", cie10Routes);
 app.use("/api/novedad", novedadRouter);
+app.use("/api/usuario", usuarioRouter);
 
 // Ruta raíz para probar la conexión a la base de datos
 app.get("/", async (_req: any, res: any) => {
