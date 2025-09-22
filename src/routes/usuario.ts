@@ -118,4 +118,95 @@ router.delete(
   }
 );
 
+// Editar usuario por DNI
+router.put("/editar-usuario-dni/:dni", async (req: Request, res: Response) => {
+  const { dni } = req.params;
+  const {
+    Apellido_Nombre,
+    Area,
+    Cargo,
+    Correo_Electronico,
+    Domicilio,
+    Estado_Civil,
+    Fecha_Desde, // asegúrate que el frontend envía este nombre
+    Fecha_Nacimiento,
+    Legajo,
+    Telefono,
+    Tipo_Documento,
+    Numero_Documento, // este puede ser igual o distinto al original
+  } = req.body;
+
+  try {
+    // Actualiza en Empleado
+    const [result]: any = await db.query(
+      `UPDATE Empleado SET
+        Apellido_Nombre = ?,
+        Area = ?,
+        Cargo = ?,
+        Correo_Electronico = ?,
+        Domicilio = ?,
+        Estado_Civil = ?,
+        Fecha_Desde = ?,
+        Fecha_Nacimiento = ?,
+        Legajo = ?,
+        Telefono = ?,
+        Tipo_Documento = ?,
+        Numero_Documento = ?
+      WHERE Numero_Documento = ?`,
+      [
+        Apellido_Nombre,
+        Area,
+        Cargo,
+        Correo_Electronico,
+        Domicilio,
+        Estado_Civil,
+        Fecha_Desde,
+        Fecha_Nacimiento,
+        Legajo,
+        Telefono,
+        Tipo_Documento,
+        Numero_Documento,
+        dni,
+      ]
+    );
+
+    console.log("Body recibido:", req.body);
+    console.log("Valores enviados al UPDATE:", [
+      Apellido_Nombre,
+      Area,
+      Cargo,
+      Correo_Electronico,
+      Domicilio,
+      Estado_Civil,
+      Fecha_Desde,
+      Fecha_Nacimiento,
+      Legajo,
+      Telefono,
+      Tipo_Documento,
+      Numero_Documento,
+      dni,
+    ]);
+
+    // Actualiza en Usuarios (si existe)
+    await db.query(
+      `UPDATE Usuarios SET
+        Nombre_Usuario = ?,
+        Correo_Electronico = ?,
+        Numero_Documento = ?
+      WHERE Numero_Documento = ?`,
+      [
+        Apellido_Nombre,
+        Correo_Electronico,
+        Numero_Documento,
+        dni,
+      ]
+    );
+
+    res.json({ message: "Usuario actualizado correctamente" });
+  } catch (err) {
+    console.error("Error al actualizar usuario:", err);
+    res.status(500).json({ error: "Error al actualizar usuario" });
+  }
+});
+
 export default router;
