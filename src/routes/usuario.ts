@@ -59,7 +59,7 @@ router.post("/auth/register", async (req, res) => {
       email,
       password,
       rolId,
-      numeroDocumento,
+      numeroDocumento, //id empleado!!!!!
     ]);
     await connection.commit();
     res.status(201).json({ message: "Usuario creado correctamente" });
