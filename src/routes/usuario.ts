@@ -128,12 +128,12 @@ router.put("/editar-usuario-dni/:dni", async (req: Request, res: Response) => {
     Correo_Electronico,
     Domicilio,
     Estado_Civil,
-    Fecha_Desde, // asegúrate que el frontend envía este nombre
+    Fecha_Desde,
     Fecha_Nacimiento,
     Legajo,
     Telefono,
     Tipo_Documento,
-    Numero_Documento, // este puede ser igual o distinto al original
+    Numero_Documento,
   } = req.body;
 
   try {
