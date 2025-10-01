@@ -7,10 +7,11 @@ const router = Router();
 // Configura multer para guardar archivos en /uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // asegúrate de que la carpeta exista
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
+    const uniqueName =
+      Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
     cb(null, uniqueName);
   },
 });
@@ -25,20 +26,34 @@ router.post(
   ]),
   async (req: Request, res: Response) => {
     const { idEmpleado, descripcion } = req.body;
-    // Obtén el nombre del archivo de imagen si existe
+
     let imagen = null;
-    if (req.files && (req.files as any).imagen && (req.files as any).imagen[0]) {
+    if (
+      req.files &&
+      (req.files as any).imagen &&
+      (req.files as any).imagen[0]
+    ) {
       imagen = (req.files as any).imagen[0].filename;
+    }
+
+    let archivoAdjunto = null;
+    if (
+      req.files &&
+      (req.files as any).archivo &&
+      (req.files as any).archivo[0]
+    ) {
+      archivoAdjunto = (req.files as any).archivo[0].filename;
     }
 
     if (idEmpleado === undefined || descripcion === undefined) {
       return res.status(400).json({ error: "Faltan datos" });
     }
+
     try {
       const fecha = new Date();
       const [result]: any = await pool.query(
-        "INSERT INTO Novedad (Id_Empleado, Descripcion, Fecha, Imagen) VALUES (?, ?, ?, ?)",
-        [idEmpleado, descripcion, fecha, imagen]
+        "INSERT INTO Novedad (Id_Empleado, Descripcion, Fecha, Imagen, ArchivoAdjunto) VALUES (?, ?, ?, ?, ?)",
+        [idEmpleado, descripcion, fecha, imagen, archivoAdjunto]
       );
       res.status(201).json({
         idNovedad: result.insertId,
@@ -46,6 +61,7 @@ router.post(
         descripcion,
         fecha,
         imagen,
+        archivoAdjunto,
       });
     } catch (err) {
       console.error("Error al publicar la novedad:", err);
@@ -58,7 +74,7 @@ router.post(
 router.get("/tablon", async (_req: Request, res: Response) => {
   try {
     const [novedades] = await pool.query(
-      "SELECT * FROM Novedad ORDER BY Fecha DESC"
+      "SELECT Id_Novedad, Id_Empleado, Descripcion, Fecha, Imagen, ArchivoAdjunto FROM Novedad ORDER BY Fecha DESC"
     );
     res.json(novedades);
   } catch (err) {
