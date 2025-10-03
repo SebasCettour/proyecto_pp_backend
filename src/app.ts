@@ -18,7 +18,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/licencias', licenciasRoutes);
-app.use('/api/cie10', cie10Routes); // <-- Agregar esta línea
+app.use('/api/cie10', cie10Routes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {

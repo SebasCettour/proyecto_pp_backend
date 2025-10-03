@@ -31,20 +31,21 @@ FROM node:20 AS prod
 
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Copiar archivos de configuración
 COPY package*.json ./
+COPY tsconfig.json ./
 
-# Instalar solo dependencias de producción
-RUN npm install --omit=dev
+# Instalar dependencias
+RUN npm install
 
-# Copiar el resto del código
+# Copiar código fuente
 COPY . .
 
-# Construir el proyecto TypeScript
+# Compilar TypeScript a JavaScript
 RUN npm run build
 
 # Exponer puerto
 EXPOSE 4000
 
-# Comando por defecto en producción
-CMD ["npm", "start"]
+# Ejecutar el JavaScript compilado
+CMD ["node", "dist/server.js"]

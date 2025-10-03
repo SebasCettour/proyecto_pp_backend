@@ -1,10 +1,20 @@
 import express, { Request, Response } from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { pool } from "../models/db.js";
 import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Crear carpeta si no existe
+const createUploadDir = () => {
+  if (!fs.existsSync('uploads/certificados')) {
+    fs.mkdirSync('uploads/certificados', { recursive: true });
+  }
+};
+
+createUploadDir();
 
 // Configuración de multer para subir archivos
 const storage = multer.diskStorage({
@@ -43,8 +53,6 @@ router.post(
         documento,
         area,
         motivo,
-        fechaDesde,
-        fechaHasta,
         observaciones,
         diagnosticoCIE10_codigo,
         diagnosticoCIE10_descripcion,
@@ -52,21 +60,14 @@ router.post(
 
       const certificadoMedico = req.file ? req.file.filename : null;
 
-      // Validaciones
-      if (
-        !nombre ||
-        !apellido ||
-        !documento ||
-        !area ||
-        !motivo ||
-        !fechaDesde ||
-        !fechaHasta
-      ) {
+      // Validaciones básicas
+      if (!nombre || !apellido || !documento || !area || !motivo) {
         return res
           .status(400)
           .json({ message: "Faltan campos obligatorios" });
       }
 
+      // Validación específica para enfermedad
       if (motivo === "Enfermedad" && (!certificadoMedico || !diagnosticoCIE10_codigo)) {
         return res.status(400).json({
           message:
@@ -77,26 +78,24 @@ router.post(
       // Casting del user para acceder a id
       const user = req.user as { id: number; username: string; role: string } | undefined;
 
-      // Insertar en la base de datos
+      // Insertar en la base de datos (asegurando que Estado sea 'Pendiente')
       const [result] = await pool.execute(
         `INSERT INTO Licencia (
-          Id_Empleado, Nombre, Apellido, Documento, Area, Motivo, 
-          FechaDesde, FechaHasta, Observaciones, CertificadoMedico,
-          DiagnosticoCIE10_Codigo, DiagnosticoCIE10_Descripcion
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          Nombre, Apellido, Documento, Area, Motivo, 
+          Observaciones, CertificadoMedico,
+          DiagnosticoCIE10_Codigo, DiagnosticoCIE10_Descripcion, Estado
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          user?.id || null,
           nombre,
           apellido,
           documento,
           area,
           motivo,
-          fechaDesde,
-          fechaHasta,
           observaciones || null,
           certificadoMedico,
           diagnosticoCIE10_codigo || null,
           diagnosticoCIE10_descripcion || null,
+          'Pendiente'
         ]
       );
 
@@ -110,5 +109,36 @@ router.post(
     }
   }
 );
+
+// Obtener licencias pendientes
+router.get("/pendientes", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const [licencias] = await pool.execute(
+      "SELECT * FROM Licencia WHERE Estado = 'Pendiente' ORDER BY FechaSolicitud DESC"
+    );
+    res.json(licencias);
+  } catch (error) {
+    console.error("Error obteniendo licencias:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Responder solicitud
+router.put("/responder/:id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { estado, motivoRechazo } = req.body;
+
+    await pool.execute(
+      "UPDATE Licencia SET Estado = ?, FechaRespuesta = NOW(), MotivoRechazo = ? WHERE Id_Licencia = ?",
+      [estado, motivoRechazo || null, id]
+    );
+
+    res.json({ message: "Respuesta enviada exitosamente" });
+  } catch (error) {
+    console.error("Error respondiendo licencia:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
 
 export default router;
