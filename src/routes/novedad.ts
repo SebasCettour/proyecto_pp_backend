@@ -1,13 +1,31 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../models/db.js";
 import multer from "multer";
+import fs from "fs";
 
 const router = Router();
 
-// Configura multer para guardar archivos en /uploads
+// Crear carpetas si no existen
+const createUploadDirs = () => {
+  const dirs = ["uploads/tablon_imgs", "uploads/tablon_files"];
+  dirs.forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
+
+createUploadDirs();
+
+// Configura multer para guardar archivos organizados por tipo
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    // Determinar carpeta según el tipo de archivo
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, "uploads/tablon_imgs/");
+    } else {
+      cb(null, "uploads/tablon_files/");
+    }
   },
   filename: (req, file, cb) => {
     const uniqueName =
