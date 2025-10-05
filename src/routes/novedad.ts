@@ -17,7 +17,6 @@ const createUploadDirs = () => {
 
 createUploadDirs();
 
-// Configura multer para guardar archivos organizados por tipo
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Determinar carpeta según el tipo de archivo
@@ -108,6 +107,23 @@ router.delete("/tablon/:id", async (req: Request, res: Response) => {
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: "Error al eliminar la novedad" });
+  }
+});
+
+// Actualizar una novedad por id
+router.put("/tablon/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { descripcion } = req.body;
+
+  try {
+    await pool.query(
+      "UPDATE Novedad SET Descripcion = ? WHERE Id_Novedad = ?",
+      [descripcion, id]
+    );
+    res.status(200).json({ message: "Novedad actualizada correctamente" });
+  } catch (err) {
+    console.error("Error al actualizar novedad:", err);
+    res.status(500).json({ error: "Error al actualizar la novedad" });
   }
 });
 

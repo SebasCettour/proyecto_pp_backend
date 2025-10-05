@@ -18,8 +18,8 @@ router.post("/auth/register", async (req, res) => {
     telefono,
     tipoDocumento,
     numeroDocumento,
-    password, // <-- asegúrate de recibir la contraseña
-    rolId, // <-- y el rol si corresponde
+    password,
+    rolId,
   } = req.body;
 
   const sqlEmpleado = `
