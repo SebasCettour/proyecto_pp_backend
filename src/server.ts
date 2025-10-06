@@ -1,3 +1,12 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+console.log("🔧 Environment loaded:");
+console.log("- JWT_SECRET:", process.env.JWT_SECRET ? "LOADED" : "MISSING");
+console.log("- JWT_SECRET value:", process.env.JWT_SECRET);
+console.log("- DB_HOST:", process.env.DB_HOST);
+console.log("- PORT:", process.env.PORT);
+
 import express, { Request, Response } from "express";
 import cors from "cors";
 import path from "path";
@@ -7,7 +16,7 @@ import adminRoutes from "./routes/admin.js";
 import cie10Routes from "./routes/cie10.js";
 import novedadRouter from "./routes/novedad.js";
 import usuarioRouter from "./routes/usuario.js";
-import licenciasRoutes from "./routes/licencias.js"; // <-- AGREGAR ESTA LÍNEA
+import licenciasRoutes from "./routes/licencias.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -22,7 +31,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // <-- AGREGAR PARA FORM DATA
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
@@ -32,7 +41,7 @@ app.use("/admin", adminRoutes);
 app.use("/api/cie10", cie10Routes);
 app.use("/api/novedad", novedadRouter);
 app.use("/api/usuario", usuarioRouter);
-app.use("/api/licencias", licenciasRoutes); // <-- AGREGAR ESTA LÍNEA
+app.use("/api/licencias", licenciasRoutes);
 
 // Ruta raíz para probar la conexión a la base de datos
 app.get("/", async (_req: any, res: any) => {
@@ -50,7 +59,7 @@ pool
   .getConnection()
   .then((connection) => {
     console.log("Conexión a la base de datos establecida");
-    connection.release(); // Liberar la conexión al pool
+    connection.release();
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Servidor corriendo en puerto ${PORT}`);
     });
