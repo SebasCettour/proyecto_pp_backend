@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
-import { verifyPassword, generateToken } from "../auth.js";
 import { pool } from "../models/db.js";
 import { RowDataPacket } from "mysql2";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 interface LoginBody {
   username: string;
@@ -15,84 +15,177 @@ interface DBUser extends RowDataPacket {
   Correo_Electronico: string;
   Contrasenia: string;
   Id_Rol: number;
-  Nombre_Rol: string;
+  Nombre_Rol?: string;
 }
 
 const router = Router();
 
-// LOGIN
+const verifyPassword = (plainPassword: string, hashedPassword: string): boolean => {
+  try {
+
+    if (plainPassword === hashedPassword) {
+      console.log("🔐 Password match: texto plano");
+      return true;
+    }
+    
+    // ✅ LUEGO INTENTAR BCRYPT (para producción)
+    const bcryptMatch = bcrypt.compareSync(plainPassword, hashedPassword);
+    if (bcryptMatch) {
+      console.log("🔐 Password match: bcrypt");
+      return true;
+    }
+    
+    console.log("🔐 Password no match - ni texto plano ni bcrypt");
+    return false;
+    
+  } catch (error) {
+    console.log("🔐 Error en verificación bcrypt, probando texto plano");
+    return plainPassword === hashedPassword;
+  }
+};
+
+const generateToken = (payload: { username: string; role: string }) => {
+  const JWT_SECRET = process.env.JWT_SECRET || "tu_clave_secreta_temporal";
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
+};
+
+// ✅ LOGIN MEJORADO CON LOGS
 router.post(
   "/login",
   async (req: Request<{}, any, LoginBody>, res: Response) => {
     const { username, password } = req.body;
 
+    console.log("🔐 LOGIN - Datos recibidos:", { username, password: "***" });
+
     if (!username || !password) {
+      console.log("❌ Faltan credenciales");
       return res.status(400).json({ error: "Faltan credenciales" });
     }
 
     try {
-      // Buscar usuario y rol en la base de datos
+      console.log("🔍 Buscando usuario en la base de datos...");
+      
+      // ✅ QUERY CORREGIDA - Usar Nombre_Rol
       const [rows] = await pool.query<DBUser[]>(
-        "SELECT u.*, r.Nombre_Rol FROM Usuarios u JOIN Rol r ON u.Id_Rol = r.Id_Rol WHERE u.Nombre_Usuario = ?",
+        `SELECT u.*, r.Nombre_Rol 
+         FROM Usuarios u 
+         LEFT JOIN Rol r ON u.Id_Rol = r.Id_Rol 
+         WHERE u.Nombre_Usuario = ?`,
         [username]
       );
 
+      console.log("📊 Usuarios encontrados:", rows.length);
+      
+      if (rows.length === 0) {
+        console.log("❌ Usuario no encontrado");
+        return res.status(401).json({ error: "Usuario no encontrado" });
+      }
+
       const user = rows[0];
-      if (!user) return res.status(401).json({ error: "Usuario no encontrado" });
-
-      // Verificar contraseña
-      const passwordMatches = verifyPassword(password, user.Contrasenia);
-      if (!passwordMatches)
-        return res.status(401).json({ error: "Contraseña incorrecta" });
-
-      // Generar token JWT con username y rol
-      const token = generateToken({
+      console.log("✅ Usuario encontrado:", {
+        id: user.Id_Usuario,
         username: user.Nombre_Usuario,
-        role: user.Nombre_Rol.toLocaleLowerCase(),
+        email: user.Correo_Electronico,
+        rol_id: user.Id_Rol,
+        rol_nombre: user.Nombre_Rol
       });
 
-      return res.json({ token, role: user.Nombre_Rol.toLocaleLowerCase() });
+      // ✅ VERIFICAR CONTRASEÑA CON LOGS DETALLADOS
+      console.log("🔐 Verificando contraseña...");
+      console.log("📊 Password enviado:", password);
+      console.log("📊 Password en BD:", user.Contrasenia);
+      console.log("📊 Longitud password enviado:", password.length);
+      console.log("📊 Longitud password BD:", user.Contrasenia.length);
+      console.log("📊 Comparación directa:", password === user.Contrasenia);
+
+      const passwordMatches = verifyPassword(password, user.Contrasenia);
+      
+      if (!passwordMatches) {
+        console.log("❌ Contraseña incorrecta");
+        return res.status(401).json({ error: "Contraseña incorrecta" });
+      }
+
+      console.log("✅ Contraseña correcta");
+
+      // ✅ MAPEAR ROL USANDO EL NOMBRE REAL DEL ROL
+      let roleFrontend = (user.Nombre_Rol || "").toLowerCase();
+
+      console.log("🎭 Rol asignado:", roleFrontend);
+
+      // ✅ GENERAR TOKEN
+      const token = generateToken({
+        username: user.Nombre_Usuario,
+        role: roleFrontend,
+      });
+
+      console.log("🎫 Token generado exitosamente");
+
+      return res.json({ 
+        token, 
+        role: roleFrontend,
+        user: {
+          id: user.Id_Usuario,
+          username: user.Nombre_Usuario,
+          email: user.Correo_Electronico,
+          rol_id: user.Id_Rol,
+          rol_name: user.Nombre_Rol
+        }
+      });
+
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error en login:", err);
       return res.status(500).json({ error: "Error del servidor" });
     }
   }
 );
 
-// REGISTER
+// ✅ REGISTER CORREGIDO
 router.post(
   "/register",
   async (req: Request, res: Response) => {
     const { username, password, email, roleId } = req.body;
+
+    console.log("📝 REGISTER - Datos recibidos:", { username, email, roleId });
 
     if (!username || !password || !roleId) {
       return res.status(400).json({ error: "Faltan datos obligatorios" });
     }
 
     try {
-      // Verifica si el usuario ya existe
+      // ✅ VERIFICAR SI EL USUARIO YA EXISTE
       const [existing] = await pool.query(
         "SELECT * FROM Usuarios WHERE Nombre_Usuario = ?",
         [username]
       );
+      
       if ((existing as any).length > 0) {
         return res.status(409).json({ error: "El usuario ya existe" });
       }
 
+      // ✅ HASHEAR PASSWORD
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // ✅ SEPARAR NOMBRE Y APELLIDO
+      const nombreCompleto = username || "";
+      const partesNombre = nombreCompleto.trim().split(" ");
+      const nombre = partesNombre[0] || "";
+      const apellido = partesNombre.slice(1).join(" ") || "";
+
+      // ✅ INSERTAR USUARIO
       await pool.query(
         "INSERT INTO Usuarios (Nombre_Usuario, Contrasenia, Correo_Electronico, Id_Rol) VALUES (?, ?, ?, ?)",
         [username, hashedPassword, email || null, roleId]
       );
 
+      // ✅ INSERTAR EMPLEADO CON CAMPOS CORRECTOS
       await pool.query(
         `INSERT INTO Empleado (
-          Apellido_Nombre, Area, Cargo, Correo_Electronico, Domicilio, Estado_Civil,
+          Nombre, Apellido, Area, Cargo, Correo_Electronico, Domicilio, Estado_Civil,
           Fecha_Desde, Fecha_Nacimiento, Legajo, Telefono, Tipo_Documento, Numero_Documento
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          username,
+          nombre,               
+          apellido,                
           req.body.area,
           req.body.cargo,
           email,
@@ -109,7 +202,7 @@ router.post(
 
       return res.status(201).json({ message: "Usuario creado con éxito" });
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error en register:", err);
       return res.status(500).json({ error: "Error del servidor" });
     }
   }
