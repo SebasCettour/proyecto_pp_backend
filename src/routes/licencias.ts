@@ -144,6 +144,18 @@ router.post(
 
       console.log("ID final del usuario:", userId);
 
+      // Buscar el Id_Empleado real usando el documento
+      const [empleadoRows] = await pool.execute(
+        "SELECT Id_Empleado FROM Empleado WHERE Documento = ?",
+        [documento]
+      );
+
+      if (!Array.isArray(empleadoRows) || empleadoRows.length === 0) {
+        return res.status(400).json({ message: "Empleado no encontrado" });
+      }
+
+      const idEmpleado = (empleadoRows[0] as any).Id_Empleado;
+
       const [result] = await pool.execute(
         `INSERT INTO Licencia (
           Id_Empleado, Nombre, Apellido, Documento, Area, Motivo, 
@@ -151,7 +163,7 @@ router.post(
           DiagnosticoCIE10_Descripcion, FechaInicio, FechaFin, Estado
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          userId,
+          idEmpleado,
           nombre,
           apellido,
           documento,
@@ -215,6 +227,25 @@ router.put(
       res.json({ message: "Respuesta enviada exitosamente" });
     } catch (error) {
       console.error("Error respondiendo licencia:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  }
+);
+
+// Obtener licencias de un empleado por documento
+router.get(
+  "/mis-licencias/:documento",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const { documento } = req.params;
+      const [licencias] = await pool.execute(
+        "SELECT * FROM Licencia WHERE Documento = ? ORDER BY FechaSolicitud DESC",
+        [documento]
+      );
+      res.json(licencias);
+    } catch (error) {
+      console.error("Error obteniendo licencias del empleado:", error);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   }
