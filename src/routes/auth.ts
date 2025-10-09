@@ -82,13 +82,16 @@ router.post(
       }
 
       const user = rows[0];
-      console.log("✅ Usuario encontrado:", {
-        id: user.Id_Usuario,
-        username: user.Nombre_Usuario,
-        email: user.Correo_Electronico,
-        rol_id: user.Id_Rol,
-        rol_nombre: user.Nombre_Rol
-      });
+
+      // === NUEVO: Obtener el documento del usuario desde la tabla Empleado ===
+      const [empleadoRows] = await pool.query<any[]>(
+        "SELECT Numero_Documento FROM Empleado WHERE Correo_Electronico = ? OR Nombre = ? OR Apellido = ? OR ? IN (Numero_Documento, Legajo)",
+        [user.Correo_Electronico, user.Nombre_Usuario, user.Nombre_Usuario, user.Nombre_Usuario]
+      );
+      let documento = "";
+      if (empleadoRows.length > 0) {
+        documento = empleadoRows[0].Numero_Documento;
+      }
 
       // ✅ VERIFICAR CONTRASEÑA CON LOGS DETALLADOS
       console.log("🔐 Verificando contraseña...");
@@ -112,11 +115,16 @@ router.post(
 
       console.log("🎭 Rol asignado:", roleFrontend);
 
-      // ✅ GENERAR TOKEN
-      const token = generateToken({
-        username: user.Nombre_Usuario,
-        role: roleFrontend,
-      });
+      // ✅ GENERAR TOKEN con documento
+      const token = jwt.sign(
+        {
+          username: user.Nombre_Usuario,
+          role: roleFrontend,
+          documento: documento, // <-- agrega el documento aquí
+        },
+        process.env.JWT_SECRET || "tu_clave_secreta_temporal",
+        { expiresIn: "24h" }
+      );
 
       console.log("🎫 Token generado exitosamente");
 
@@ -128,7 +136,8 @@ router.post(
           username: user.Nombre_Usuario,
           email: user.Correo_Electronico,
           rol_id: user.Id_Rol,
-          rol_name: user.Nombre_Rol
+          rol_name: user.Nombre_Rol,
+          documento
         }
       });
 

@@ -146,7 +146,7 @@ router.post(
 
       // Buscar el Id_Empleado real usando el documento
       const [empleadoRows] = await pool.execute(
-        "SELECT Id_Empleado FROM Empleado WHERE Documento = ?",
+        "SELECT Id_Empleado FROM Empleado WHERE Numero_Documento = ?",
         [documento]
       );
 
