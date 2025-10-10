@@ -251,4 +251,89 @@ router.get(
   }
 );
 
+// Editar una licencia existente
+router.put(
+  "/editar/:id",
+  authenticateToken,
+  upload.single("certificadoMedico"),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const {
+        nombre,
+        apellido,
+        documento,
+        motivo,
+        observaciones,
+        diagnosticoCIE10_codigo,
+        diagnosticoCIE10_descripcion,
+        fechaInicio,
+        fechaFin,
+      } = req.body;
+
+      // Si se sube un nuevo archivo, usarlo; si no, mantener el anterior
+      let certificadoMedico = null;
+      if (req.file) {
+        certificadoMedico = req.file.filename;
+      }
+
+      // Construir la consulta dinámica según si hay archivo nuevo o no
+      let query = `
+        UPDATE Licencia SET
+          Nombre = ?,
+          Apellido = ?,
+          Documento = ?,
+          Motivo = ?,
+          Observaciones = ?,
+          DiagnosticoCIE10_Codigo = ?,
+          DiagnosticoCIE10_Descripcion = ?,
+          FechaInicio = ?,
+          FechaFin = ?
+      `;
+      const params: any[] = [
+        nombre,
+        apellido,
+        documento,
+        motivo,
+        observaciones || null,
+        diagnosticoCIE10_codigo || null,
+        diagnosticoCIE10_descripcion || null,
+        fechaInicio,
+        fechaFin,
+      ];
+
+      if (certificadoMedico) {
+        query += `, CertificadoMedico = ?`;
+        params.push(certificadoMedico);
+      }
+
+      query += ` WHERE Id_Licencia = ?`;
+      params.push(id);
+
+      console.log("EDIT LICENCIA PARAMS:", {
+        nombre,
+        apellido,
+        documento,
+        motivo,
+        observaciones,
+        diagnosticoCIE10_codigo,
+        diagnosticoCIE10_descripcion,
+        fechaInicio,
+        fechaFin,
+        certificadoMedico,
+        id,
+      });
+      console.log("QUERY:", query);
+      console.log("PARAMS:", params);
+
+      await pool.execute(query, params);
+
+      res.json({ message: "Licencia actualizada correctamente" });
+    } catch (error) {
+      console.error("Error actualizando licencia:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  }
+);
+
 export default router;
