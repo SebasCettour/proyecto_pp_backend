@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { pool as db } from "../models/db.js";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 
@@ -362,6 +363,48 @@ router.put("/editar-usuario-dni/:dni", async (req: Request, res: Response) => {
     const error = err as Error;
     console.error("Error al actualizar usuario:", error);
     res.status(500).json({ error: "Error al actualizar usuario" });
+  }
+});
+
+// Cambiar contraseña (requiere: username, oldPassword, newPassword)
+router.post("/auth/cambiar-password", async (req: Request, res: Response) => {
+  const { username, oldPassword, newPassword } = req.body;
+
+  if (!username || !oldPassword || !newPassword) {
+    return res.status(400).json({ error: "Faltan datos obligatorios" });
+  }
+
+  try {
+    // Buscar usuario
+    const [rows]: any = await db.query(
+      "SELECT Contrasenia FROM Usuarios WHERE Nombre_Usuario = ?",
+      [username]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    const hashActual = rows[0].Contrasenia;
+
+    // Verificar contraseña actual
+    const esValida = await bcrypt.compare(oldPassword, hashActual);
+    if (!esValida && oldPassword !== hashActual) {
+      return res.status(401).json({ error: "Contraseña actual incorrecta" });
+    }
+
+    // Hashear nueva contraseña
+    const hashNueva = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar contraseña
+    await db.query(
+      "UPDATE Usuarios SET Contrasenia = ? WHERE Nombre_Usuario = ?",
+      [hashNueva, username]
+    );
+
+    res.json({ message: "Contraseña actualizada correctamente" });
+  } catch (err) {
+    console.error("Error al cambiar contraseña:", err);
+    res.status(500).json({ error: "Error al cambiar la contraseña" });
   }
 });
 
