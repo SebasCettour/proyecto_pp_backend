@@ -86,7 +86,7 @@ router.post(
 
       // === NUEVO: Obtener el documento del usuario desde la tabla Empleado ===
       const [empleadoRows] = await pool.query<any[]>(
-        "SELECT Numero_Documento FROM Empleado WHERE Correo_Electronico = ? OR Nombre = ? OR Apellido = ? OR ? IN (Numero_Documento, Legajo)",
+        "SELECT Id_Empleado, Numero_Documento FROM Empleado WHERE Correo_Electronico = ? OR Nombre = ? OR Apellido = ? OR ? IN (Numero_Documento, Legajo)",
         [
           user.Correo_Electronico,
           user.Nombre_Usuario,
@@ -95,8 +95,10 @@ router.post(
         ]
       );
       let documento = "";
+      let idEmpleado = null;
       if (empleadoRows.length > 0) {
         documento = empleadoRows[0].Numero_Documento;
+        idEmpleado = empleadoRows[0].Id_Empleado;
       }
 
       // ✅ VERIFICAR CONTRASEÑA CON LOGS DETALLADOS
@@ -150,6 +152,7 @@ router.post(
           rol_id: user.Id_Rol,
           rol_name: user.Nombre_Rol,
           documento,
+          idEmpleado, // <-- Agregado aquí
         },
       });
     } catch (err) {

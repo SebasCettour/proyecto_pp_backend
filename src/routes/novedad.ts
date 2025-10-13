@@ -87,11 +87,22 @@ router.post(
   }
 );
 
-// Obtener todas las novedades
+// Obtener todas las novedades con nombre y apellido del empleado
 router.get("/tablon", async (_req: Request, res: Response) => {
   try {
     const [novedades] = await pool.query(
-      "SELECT Id_Novedad, Id_Empleado, Descripcion, Fecha, Imagen, ArchivoAdjunto FROM Novedad ORDER BY Fecha DESC"
+      `SELECT 
+        n.Id_Novedad, 
+        n.Id_Empleado, 
+        n.Descripcion, 
+        n.Fecha, 
+        n.Imagen, 
+        n.ArchivoAdjunto,
+        e.Nombre AS Nombre_Empleado,
+        e.Apellido AS Apellido_Empleado
+      FROM Novedad n
+      JOIN Empleado e ON n.Id_Empleado = e.Id_Empleado
+      ORDER BY n.Fecha DESC`
     );
     res.json(novedades);
   } catch (err) {
