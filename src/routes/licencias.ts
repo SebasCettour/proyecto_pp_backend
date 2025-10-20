@@ -336,4 +336,38 @@ router.put(
   }
 );
 
+// Obtener historial de licencias (por DNI)
+router.get(
+  "/historial/:dni",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const { dni } = req.params;
+
+      // Obtener licencias del empleado por su DNI (documento)
+      const [rows] = await pool.execute(
+        `SELECT l.*, e.Nombre AS NombreEmpleado, e.Apellido AS ApellidoEmpleado
+         FROM Licencia l
+         JOIN Empleado e ON l.Id_Empleado = e.Id_Empleado
+         WHERE e.Numero_Documento = ?
+         ORDER BY l.FechaSolicitud DESC`,
+        [dni]
+      );
+
+      // Añadir URL pública para el certificado si existe
+      const licencias = (rows as any[]).map((l) => ({
+        ...l,
+        CertificadoMedicoUrl: l.CertificadoMedico
+          ? `${req.protocol}://${req.get("host")}/uploads/certificados/${l.CertificadoMedico}`
+          : null,
+      }));
+
+      res.json(licencias);
+    } catch (error) {
+      console.error("Error obteniendo historial de licencias:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  }
+);
+
 export default router;
