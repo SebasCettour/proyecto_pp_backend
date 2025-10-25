@@ -156,7 +156,7 @@ router.get("/usuario-dni/:dni", async (req, res) => {
   const { dni } = req.params;
   try {
     const [rows]: any = await db.query(
-      "SELECT * FROM Empleado WHERE Numero_Documento = ?",
+      "SELECT * FROM `ProyectoPP`.`Empleado` WHERE Numero_Documento = ?",
       [dni]
     );
     if (rows.length === 0) {
