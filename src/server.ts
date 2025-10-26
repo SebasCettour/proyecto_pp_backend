@@ -17,7 +17,10 @@ import cie10Routes from "./routes/cie10.js";
 import novedadRouter from "./routes/novedad.js";
 import usuarioRouter from "./routes/usuario.js";
 import licenciasRoutes from "./routes/licencias.js";
+<<<<<<< HEAD
 import familiaresRoutes from "./routes/familiares.js";
+=======
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -43,7 +46,10 @@ app.use("/api/cie10", cie10Routes);
 app.use("/api/novedad", novedadRouter);
 app.use("/api/usuario", usuarioRouter);
 app.use("/api/licencias", licenciasRoutes);
+<<<<<<< HEAD
 app.use("/api/familiares", familiaresRoutes);
+=======
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
 
 // Ruta raíz para probar la conexión a la base de datos
 app.get("/", async (_req: any, res: any) => {

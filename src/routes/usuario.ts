@@ -25,13 +25,20 @@ router.post("/auth/register", async (req, res) => {
     estadoCivil,
     fechaContrato,
     fechaNacimiento,
+<<<<<<< HEAD
+=======
+    legajo,
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
     telefono,
     tipoDocumento,
     numeroDocumento,
     password,
     rolId,
+<<<<<<< HEAD
     sindicatoId,
     familiares, // ✅ AGREGAR SOPORTE PARA FAMILIARES
+=======
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
   } = req.body;
 
   // ✅ SEPARAR NOMBRE Y APELLIDO CORRECTAMENTE
@@ -45,6 +52,7 @@ router.post("/auth/register", async (req, res) => {
   console.log("  - Nombre:", nombre);
   console.log("  - Apellido:", apellido);
 
+<<<<<<< HEAD
   // ✅ FUNCIÓN PARA GENERAR LEGAJO AUTOMÁTICO
   const generateLegajo = (): string => {
     return Math.floor(1000 + Math.random() * 9000).toString();
@@ -52,6 +60,10 @@ router.post("/auth/register", async (req, res) => {
 
   // ✅ VALIDACIONES MEJORADAS
   if (!username || !email || !password || !numeroDocumento || !rolId || !sindicatoId) {
+=======
+  // ✅ VALIDACIONES MEJORADAS
+  if (!username || !email || !password || !numeroDocumento || !rolId) {
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
     console.log("❌ Faltan campos obligatorios");
     return res.status(400).json({
       error: "Faltan campos obligatorios",
@@ -59,17 +71,25 @@ router.post("/auth/register", async (req, res) => {
     });
   }
 
+<<<<<<< HEAD
   // ✅ GENERAR LEGAJO AUTOMÁTICAMENTE
   const legajo = generateLegajo();
   console.log("🔢 Legajo generado automáticamente:", legajo);
 
+=======
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
   // ✅ SQL CORRECTO - RESPETA EL ORDEN DE LA TABLA
   const sqlEmpleado = `
     INSERT INTO Empleado (
       Nombre, Apellido, Area, Cargo, Correo_Electronico, Domicilio, Estado_Civil,
+<<<<<<< HEAD
       Fecha_Desde, Fecha_Nacimiento, Legajo, Telefono, Tipo_Documento, Numero_Documento,
       Id_Sindicato
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+=======
+      Fecha_Desde, Fecha_Nacimiento, Legajo, Telefono, Tipo_Documento, Numero_Documento
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
   `;
 
   const sqlUsuario = `
@@ -100,7 +120,10 @@ router.post("/auth/register", async (req, res) => {
       telefono,
       tipoDocumento,
       numeroDocumento,
+<<<<<<< HEAD
       sindicatoId ? Number(sindicatoId) : null,  // ✅ ID del sindicato
+=======
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
     ];
 
     console.log("📊 Datos en orden correcto:");
@@ -110,6 +133,7 @@ router.post("/auth/register", async (req, res) => {
     console.log("  4. Cargo:", cargo);
     console.log("📊 Array completo:", empleadoData);
     
+<<<<<<< HEAD
     const [empleadoResult]: any = await connection.query(sqlEmpleado, empleadoData);
     const empleadoId = empleadoResult.insertId;
     console.log("✅ Empleado insertado exitosamente con ID:", empleadoId);
@@ -122,11 +146,21 @@ router.post("/auth/register", async (req, res) => {
 
     // Insertar en Usuarios
     const usuarioData = [username, email, hashedPassword, rolId, numeroDocumento];
+=======
+    await connection.query(sqlEmpleado, empleadoData);
+    console.log("✅ Empleado insertado exitosamente");
+
+    console.log("🔄 Insertando en Usuarios...");
+
+    // Insertar en Usuarios
+    const usuarioData = [username, email, password, rolId, numeroDocumento];
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
 
     console.log("📊 Datos Usuario:", [username, email, "***", rolId, numeroDocumento]);
     await connection.query(sqlUsuario, usuarioData);
     console.log("✅ Usuario insertado exitosamente");
 
+<<<<<<< HEAD
     // ✅ PROCESAR FAMILIARES SI EXISTEN
     if (familiares && familiares.length > 0) {
       console.log("👨‍👩‍👧‍👦 Procesando familiares...");
@@ -175,6 +209,12 @@ router.post("/auth/register", async (req, res) => {
       empleadoId: empleadoId,
       familiaresCount: familiares ? familiares.length : 0
     });
+=======
+    await connection.commit();
+    console.log("✅ Usuario creado exitosamente");
+
+    res.status(201).json({ message: "Usuario creado correctamente" });
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
   } catch (err: unknown) {
     if (connection) {
       await connection.rollback();
@@ -469,6 +509,7 @@ router.post("/auth/cambiar-password", async (req: Request, res: Response) => {
   }
 });
 
+<<<<<<< HEAD
 // ✅ BUSCAR EMPLEADO POR DNI PARA LIQUIDACIÓN
 router.get("/empleado-buscar/:dni", async (req: Request, res: Response) => {
   const { dni } = req.params;
@@ -511,4 +552,6 @@ router.get("/empleado-buscar/:dni", async (req: Request, res: Response) => {
   }
 });
 
+=======
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
 export default router;

@@ -8,8 +8,12 @@
     "dev": "ts-node --esm src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+<<<<<<< HEAD
     "watch": "tsc --watch",
     "create-superadmin": "ts-node --esm src/scripts/createSuperAdmin.ts"
+=======
+    "watch": "tsc --watch"
+>>>>>>> 2f4f7136325fe2774051c444ab86791c6b87f505
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
